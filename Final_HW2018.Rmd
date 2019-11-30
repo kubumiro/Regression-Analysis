@@ -1,0 +1,153 @@
+---
+title: "01REAN Zápočtový úkol"
+author: "M�ra kub�"
+date: " 17. prosince 2018"
+output: 
+  word_document:
+    fig_height: 4
+    fig_width: 6
+  html_document:
+    fig_height: 4
+    fig_width: 6
+  pdf_document:
+    fig_height: 4
+    fig_width: 6
+---
+
+<!-- Komentář v textové části: následný kod tam nebude -->
+
+```{r include=FALSE}
+# komentar v R: pokud include = F tak se kód v protokolu nezobrazí
+# Set the working directory
+getwd()  # find where are you at the moment 
+#setwd("d:/Vyuka/REAN/2018/Final_HW2018")
+
+# pokud vam nefunguje markdown, nainstalujte si nejdrive balicek
+#install.packages("rmarkdown")
+
+# balicky nejspise potrebne pro praci behem zapoctove ulohy
+load.libraries <- c('car','MASS','ggplot2','ISLR','graphics','effects','lattice','leaps','psych','lmtest','robustbase')
+install.lib <- load.libraries[!load.libraries %in% installed.packages()]
+for(libs in install.lib) install.packages(libs, dependences = TRUE)
+sapply(load.libraries, require, character = TRUE)
+
+```
+
+<!-- Sekce se značí pomocí # -->
+# Řešení zápočtové úlohy 
+
+Jednotlivé otázky jsem vypracoval samostatně a nikdo krom maminky mi nepomáhal. �zw fsdf qw fw
+
+<!-- podsekce se značí pomocí ## atd. -->
+
+## Průzkumová a grafická část:
+
+*Q01: Zjistěte, zdali data neobsahují chybějící hodnoty (\texttt{NA}), pokud ano tak rozhodněte zdali můžete příslušná pozorování z dat odstranit. Které proměnné jsou kvantitativní a které kvalitativní? Jeli možno některé zařadit do obou skupin, pro kterou se rozhodnete? Které proměnné budete brát jako faktorové a proč?
+*  
+```{r }
+# read data file
+auta = read.csv("Car_data.csv",  header = TRUE, sep=";")
+# print summary
+summary(auta)
+str(auta) 
+```
+Má odpověď na otázku 1 je ...  
+
+*Q02: Proměnnou \texttt{Mileage} nahraďte proměnnou \texttt{Odometer} kde bude uveden stav tachometru v kilometrech místo v mílích. Vysv2tlovanou proměnnou \texttt{Price} převeďte z USD na CZK. Vykreslete histogramy a odhady hustot pro tyto dvě proměnné, tj  \texttt{Price} a  \texttt{Odometer}.
+*  
+
+```{r include=FALSE}
+# tady si něco můžu robit a v protokolu se to nezobrazí
+```
+
+```{r}
+# tohle už tam vidět bude ...
+with(auta,plot(Price~Mileage))
+```
+
+Má odpověď na otázku 2 je ...
+
+
+
+*Q03:   Pro proměnné \texttt{Price, Odometer} vykreslete \texttt{scatterplot} - závislost odezvy na vysvětlující proměnné a proložte body jak lineárním odhadem tak vyhlazenou křivkou lokální regrese, buď pomocí LOESS (locally estimated scatterplot smoothing) nebo LOWESS (locally weighted scatterplot smoothing) (\texttt{lines(lowess(X,Y))}). Co lze z tohoto obrázku tvrdit o závislosti ceny auta na počtu najetých km?
+*  
+
+*Q04: Pro proměnné \texttt{Make, Type, Doors, Cruise, Sound, Leather} a jejich vztah k odezvě  \texttt{Price} vykreslete krabicové diagramy (boxploty). Je mezi uvedenými proměnnými některá, pro kterou byste na základě krabicových diagramů navrhli sloučit určité úrovně dohromady?
+*  
+
+*Q05: Pro kombinaci faktorizovaných proměnných \texttt{Make} a \texttt{Model} vykreslete cenu aut, aby bylo na obrázku vidět, jestli se liší ceny u jednotlivých modelů v závislosti na výrobci a naopak jak se liší ceny u jednotlivých výrobců v závislosti na modelu.
+*  
+
+*Q06: Pro auta výrobce SAAB vykreslete závislost ceny na počtu ujetých kilometrů, kde jednotlivé události označíte barvou podle Typu auta a velikost bodů v grafu bude odpovídat objemu motoru.
+*  
+
+*Q07: Navrhněte další zobrazení datového souboru.  Proveďte ho a popište jeho účel.
+*
+
+## Regresní model závislosti ceny automobilu Saturn na počtu najetých km.
+
+*Q08: Sestavte jednoduchý regresní model a na jeho základech zjistěte zdali cena ojetého automobilu značky Saturn závisí na počtu najetých kilometrů. Pokud ano, o kolik se změní odhadovaná cena automobilu Saturn při najetí 1000km navíc? Ověřte předpoklady pro použití lineárního modelu a diskutujte výstup. 
+*  
+
+*Q09: Dá se předešlý jednoduchý regresní model zlepšit pomocí logaritmické transformace odezvy? Jak se poté 
+	změní (navýší/poklesne) cena automobilů při změně počtu najetých kilometrů o 1000 km? Zdůvodněte proč případná transformace je přínosná, nebo naopak nepřínosná.
+*  
+
+*Q10: Vyzkoušejte transformovat nezávislou proměnnou  \texttt{Odometer}. Vyzkoušejte například po částech konstantní transformaci,  splines a polynomiální transformaci (kvadratickou a kubickou). 
+*  
+
+*Q11: Vykreslete scatterplot skutečných cen aut a stavu tachometru a na základě vybraného modelu, proložte skrze data odhadnutou regresní přímku a vykreslete 95\% konfidenční intervaly jak pro predikované hodnoty, tak pro regresní přímku (tzv. Confidence a Prediction band). Porovnejte s výsledkem z funkce \texttt{plot(allEffects(model))}.
+*  
+
+*Q12: Přidejte k vysvětlujícím proměnným i \texttt{Type} a \texttt{Model}, navrhněte aditivní lineární model, a ve scatterplotu vykreslete jednotlivé skupiny různými barvami a data proložte odpovídajícími regresními přímkami.
+*  
+
+*Q13: Proveďte validaci modelu z bodu 11 pomocí příslušných testů na rezidua a pomocí příslušných obrázků (QQplot, residua vs. fitted, atd.)
+*  
+
+## Vícerozměrný regresní model
+
+*Q14: Porovnejte pomocí vhodného statistického testu shodnost středních hodnot cen u automobilů mající a nemající tempomat, u atomobilů mající a nemající vylepšené reproduktory a mající a nemající sedačky v kůži. Zdůvodněte, zdali tyto statistické testy jsou vypovídající a zdali lze z nich určit důležitost daných proměnných pro predikci ceny automobilu.
+*  
+
+*Q15: Zkonstruujte lineární model popisující cenu automobilů GM s využitím všech dostupných proměnných, kde bude přítomna interakce nejvýše dvou proměnných. Na základě kritérií jako jsou \texttt{AIC, BIC, $R^2$, F, atd. } vyberte nejvhodnější model. Ten validujte a okomentujte jeho výběr. 
+*  
+
+*Q16: Pro vybraný model z bodu 15, vyzkoušejte jak logaritmickou transformaci odezvy \texttt{Price}, tak Box-Coxovu transformaci pro zlepšení normality reziduí.  Vykreslete optimální log-věrohodnostní profil u Box-Coxovy transformace a porovnejte navrženou mocninou transformaci s logaritmickou. Pro který model se rozhodnete a proč?
+*  
+
+*Q17: Pro model s log transformovanou cenou v bodě 15 vyčtěte procentuální navýšení/pokles ceny automobilů
+	při změně počtu najetých kilometrů o 1000 km.  Porovnejte jak se změnil vliv počtu najetých kilometrů na cenu automobilů Saturn v porovnání s modelem z bodu 9.
+*  
+
+*Q18: Spočtěte korelace mezi všemi dostupnými proměnnými, kde to dává smysl a u korelovaných proměnných se pokuste zdůvodnit důvod této korelace. Zkoumejte případnou multikolinearitu ve vašem finálním modelu z bodu 16 a pomocí podmíněnosti matice regresorů, VIF a dalších nástrojů validujte váš výběr.
+*  	
+
+*Q19: Vykreslete tzv. \textit{Partial regression plot} a tzv. \textit{Partial residual plot} pro finální model, okomentujte co nám zmíněné grafy říkají o výsledném modelu. 
+*  	
+		
+*Q20:	Prezentujte váš výsledný model pro predikci \texttt{Price}, diskutujte výsledné parametry $R^2$ a $\sigma$ tohoto modelu. Validujte model (jak graficky, tak pomocí příslušných testů hypotéz).
+*  
+
+
+## Robustní regrese
+
+*Q21: Obsahuje Váš model z bodu 19 nějaká vlivná pozorování? Pokuste se detekovat odlehlé a pákové body pomocí různých diagnostických nástrojů  tzv. \textit{leave-one-out deletion regression}.
+*  
+
+*Q22: Pokud jste odhalili nějaká vlivná pozorování, jak byste s nimi naložili a proč?
+*  
+
+*Q23: Porovnejte regresní koeficenty, které jste obdrželi z výsledného klasického lineární modelu (s a bez odlehlých pozorováních) s robustními modely. Vyzkoušejte MM odhad (pro dva druhy funkce $\psi$) a LTS odhad (při použití 90\% a 50\% pozorování)
+*
+
+## Kam dál?
+
+*Q24: Diskutujte jak by šlo případně zlepšit predikci, jaké transformace jednotlivých proměnných by mohli pomoci. Převedli byste některé další spojité proměnné na diskrétní (na faktory)? Jaké další kroky byste při analýze navrhli?  
+*  
+
+*Q25: Představte si, že jste členem mafie, která provozuje síť autobazarů. Od bosse dostanete úkol spočítat, zdali se vyplatí stáčet u aut odometry. Bazary provozujete ve státě s pochybným právním prostředím, kde stočení tachometru není trestný čin a tudíž hrozí jen pokuta. Pokud vaše prodeje odpovídají zkoumaným datům, jak vysoká by musela být pokuta, aby se nevyplatilo stáčet odometr? Předpokládejte, že Vás v průměru odhalí u každého 500 auta a v průměru budete stáčet odometry o 10000 km.
+*
+
+
+

@@ -1,0 +1,518 @@
+---
+title: "01REAN Zápoètová úloha"
+author: "Míra kubù"
+date: " 17. prosince 2018"
+output: 
+  pdf_document:
+    fig_height: 4
+    fig_width: 6
+  html_document:
+    fig_height: 4
+    fig_width: 6
+  word_document:
+    fig_height: 4
+    fig_width: 6
+---
+
+```{r include = FALSE}
+library(rmarkdown)
+library(car)
+library(knitr)
+library(markdown)
+library(rmarkdown)
+library(markdown)
+library(knitr)
+library(splines)
+library(lattice)
+library(MASS)
+library(ggplot2)
+library(ISLR)
+library(graphics)
+library(effects)
+library(leaps)
+library(psych)
+library(robustbase)
+library(lmtest)
+
+setwd("C:/Users/User/Desktop/REAN2018_zapocet")  
+cars = read.csv("Car_data.csv",  header = TRUE, sep=";")
+
+attach(cars)
+
+
+
+```
+#Pruzkumová a grafická èást:
+
+*Q01: Zjistìte, zdali data neobsahují chybìjící hodnoty (NA), pokud ano tak rozhodnìte zdali mùžete pøíslušná pozorování z dat odstranit. Které promìnné
+jsou kvantitativní a které kvalitativní? Jeli možno nìkteré zaøadit do obou
+skupin, pro kterou se rozhodnete? Které promìnné budete brát jako faktorové
+a proè?*
+```{r}
+#Q1
+
+sum(is.na(cars)) #ukaze pocet NA
+
+
+```
+
+```{r include=FALSE}
+cars$Doors <- factor(cars$Doors)
+cars$Cylinder <- factor(cars$Cylinder)
+cars$Leather <- factor(cars$Leather)
+cars$Sound <- factor(cars$Sound)
+cars$Cruise <- factor(cars$Cruise)
+cars$Make <- factor(cars$Make)
+cars$Type <- factor(cars$Type)
+
+```
+
+Za použití poèítadla chybìjících hodnot \texttt{NA} nebyla žádná chybìjící hodnota nalezena. Jakožto kvantitativní promìnné zaøazujeme \texttt{Price}, \texttt{Mileage} a \texttt{Liter}. Promìnné \texttt{Make}, \texttt{Model}, \texttt{Type} a \texttt{Trim} jsou evidentnì faktorové. Pøestože promìnné \texttt{Cylinder}, \texttt{Doors}, \texttt{Sound}, \texttt{Cruise} a \texttt{Leather} jsou zadané numericky, reflektují diskrétnì zadané kategorie, a proto je pøevedeme na faktorové. U kategorií \texttt{Leather}, \texttt{Sound} a \texttt{Cruise} totiž numerická hodnota odpovídá pouze indikátoru dané tøídy a i u dalších promìnných je zøejmé, že hodnoty reprezentují jednotlivé kategorie a nejsou spojité. Pøevedení na faktorové promìnné tak lépe odpovídá vlastnostem dat a umožní nám též jejich následné relevantní zobrazení v rámci scatterplotù a dále.
+
+
+Q02*Promìnnou Mileage nahraïte promìnnou Odometer kde bude uveden
+stav tachometru v kilometrech místo v mílích. Vysvìtlovanou promìnnou
+Price pøeveïte z USD na CZK. Vykreslete histogramy a odhady hustot
+pro tyto dvì promìnné, tj Price a Odometer.*
+```{r}
+
+#Q2
+
+
+cars$Odometer <- (cars$Mileage*1.6)
+cars$Mileage<- NULL #odstranim Mileage
+cars$Price <- (cars$Price*22)
+
+```
+
+Histogramy s odhady hustot pro obì promìnné poté vykreslíme následujícím zpùsobem.
+```{r}
+
+hist(cars$Odometer, prob = T)
+lines(density(cars$Odometer,na.rm=TRUE),col="red")
+hist(cars$Price, prob = T)
+lines(density(cars$Price,na.rm=TRUE),col="blue")
+
+```
+
+Q03*Pro promìnné Price, Odometer vykreslete scatterplot - závislost
+odezvy na vysvìtlující promìnné a proložte body jak lineárním odhadem
+tak vyhlazenou køivkou lokální regrese, buï pomocí LOESS (locally
+estimated scatterplot smoothing) nebo LOWESS (locally weighted scatterplot
+smoothing) (lines(lowess(X,Y))). Co lze z tohoto obrázku tvrdit
+o závislosti ceny auta na poètu najetých km?*
+```{r include=FALSE}
+attach(cars)
+
+
+```
+
+```{r }
+#Q3
+plot(Price ~ Odometer,cars,main="Závislost Price na Odometer",xlab="Odometer", ylab="Price")
+abline(lm(cars$Price~cars$Odometer))
+lines(lowess(cars$Odometer,cars$Price), col = "blue")
+
+```
+
+Vzhledem k tomu, že scatterplot vykreslujeme pro všechny kategorie vozù dohromady, nejde z nìco pøíliš informací vyèíst. Z ekonomické specifikace oèekáváme, že i silnì zajeté luxusní vozy budou mít vìtší cenu, nežli nové vozy nižší tøídy. Pro validní analýzu vývoje ceny na najeté vzdálenosti by tak bylo zapotøebí porovnávat jednotlivé vozy dané znaèky, typu èi modelu, jak bude ostatnì provedeno v dalších sekcích.
+
+
+Q04 *Pro promìnné Make, Type, Doors, Cruise, Sound, Leather
+a jejich vztah k odezvì Price vykreslete krabicové diagramy (boxploty).
+Je mezi uvedenými promìnnými nìkterá, pro kterou byste na základì krabicových
+diagramù navrhli slouèit urèité úrovnì dohromady?*
+
+```{r}
+
+#Q4
+
+
+boxplot(Price~Make,data=cars,main="Boxplot pro promìnné Price a Make", xlab="Make", ylab="Price", 
+        col="red", border="brown")
+```
+
+```{r}
+boxplot(Price~Type,data=cars,main="Boxplot pro promìnné Price a Type", xlab="Type", ylab="Price", 
+        col="red", border="brown")
+```
+
+```{r}
+
+boxplot(Price~Doors,data=cars,main="Boxplot pro promìnné Price a Doors", xlab="Doors", ylab="Price", 
+        col="red", border="brown")
+```
+
+```{r}
+
+boxplot(Price~Cruise,data=cars,main="Boxplot pro promìnné Price a Cruise", xlab="Cruise", ylab="Price", 
+        col="red", border="brown")
+```
+
+```{r}
+
+boxplot(Price~Sound,data=cars,main="Boxplot pro promìnné Price a Sound", xlab="Sound", ylab="Price", 
+        col="red", border="brown")
+```
+
+```{r}
+
+boxplot(Price~Leather,data=cars,main="Boxplot pro promìnné Price a Leather", xlab="Leather", ylab="Price", col="red", border="brown")
+
+
+```
+
+Na základì vykreslených boxplotù nenavrhujeme žádné slouèení úrovní dohromady. Mediány i rozptyly jednotlivých tøíd jsou totiž dle našeho mínìní pøíliš odlišné. 
+
+
+Q05 *Pro kombinaci faktorizovaných promìnných Make a Model vykreslete cenu aut, aby bylo na obrázku vidìt, jestli se liší ceny u jednotlivých modelù v závislosti na výrobci a naopak jak se liší ceny u jednotlivých výrobcù v závislosti na modelu.*
+```{r}
+
+#Q5
+ggplot(cars, aes(Price,Type)) + 
+  geom_point(aes(color = Make))
+```
+
+Na základì obrázku výše je zøejmé, že pro dané typy vozù se cena u jednotlivých výrobcù liší. Explicitnì je to zjevné u výrobce Cadillac, jehož vozy typu Sedan èi Convertible jsou dražší, nežli vozy dalších znaèek. Dále je patrné, že vozy Saturn pokrývají úzké spektrum levných vozù typu Coupe a Sedan. Naopak vozy Chevrolet poté pokrývají široké cenové spektrum u témìø všech typù vozù.
+```{r}
+ggplot(cars, aes(Price,Make)) + 
+  geom_point(aes(color = Type))
+```
+
+V pøípadì výrobcù Cadillac, Chevrolet èi Saab je zjevnì vidìt, že vozy typu Sedan jsou oznaèeny nižší cenou, nežli vozy typu Convertible. Opìt se zde ukazuje, že znaèky Buick a Saturn míøí na úzké spektrum levných vozù typu Sedan èi Coupe.
+
+
+Q06 *Pro auta výrobce SAAB vykreslete závislost ceny na poètu ujetých kilometrù, kde jednotlivé události oznaèíte barvou podle Typu auta a velikost bodù v grafu bude odpovídat objemu motoru. *
+
+```{r}
+#Q6
+ggplot(cars[Make=="SAAB",], aes(Odometer,Price)) + 
+  geom_point(aes(size = Liter,color = Type)) 
+
+
+```
+
+
+Q07 *Navrhnìte další zobrazení datového souboru. Proveïte ho a popište jeho úèel.*
+
+
+```{r include = FALSE}
+
+
+myColors <- c("red3","brown","green3",
+              "darkblue","orange","purple")
+
+cars$makeColor <- cars$Make
+levels(cars$makeColor) <- myColors
+
+cars$makeColor2 <- cars$Type
+levels(cars$makeColor2) <- myColors
+
+
+```
+
+Motivováni bodem Q05 se nyní pokusíme zlepšit zobrazení dat pro zodpovìzení otázky z bodu Q03. Vykreslíme tedy opìt závislost Price na Odometer, tentokrát nicménì do scatterplotu vneseme skrze barevnou indikaci též informaci o pøíslušnosti k danému výrobci, respektive typu vozu.
+```{r}
+
+#Q7
+plot(Price ~ Odometer,
+     data = cars,
+     pch = 19,
+     col = as.character(cars$makeColor)  )
+
+# Add legend
+legend( "topright", inset = 0.01,
+        legend = levels(cars$Make),
+        pch = 19,
+        col = levels(cars$makeColor))
+```
+
+Po vynesení pøíslušností k daným tøídám lze ze scatterplotu nyní již pozorovat, že s rostoucím poètem najetých kilometrù cena vozù pro daného výrobce klesá. Dále se na první pohled zdá, že rozptyl cen vozù znaèky Chevrolet je oproti dalším výrobcùm výraznì vyšší. Pro rigorozní ovìøení bychom však potøebovali provést testy hypotéz. Dalším zajímavým pozorováním z obrázku výše je to, že celkovì devìt vozù znaèky Cadillac se od zbytku výraznì liší v cenì. Naopak co se vysokého nájezdu týèe, pozorujeme dvì odlehlá pozorování vozù znaèky SAAB. 
+```{r}
+plot(Price ~ Odometer,
+     data = cars,
+     pch = 19,
+     col = as.character(cars$makeColor2)  )
+
+# Add legend
+legend( "topright", inset = 0.01,
+        legend = levels(cars$Type),
+        pch = 19,
+        col = levels(cars$makeColor2))
+```
+
+
+Podobnì jako v pøedchozím pøípadì, i zde se na první pohled jeví, že pro fixní typ vozù se cena snižuje s poètem najetých kilometrù. Tento trend je dobøe pozorovatelný u typu Convertible, ménì pak u typu Sedan, který zjevnì disponuje vysokým rozptylem, co se cen týèe. Zároveò zjišujeme, že všech devìt vozù znaèky Cadillac vyznaèujících se oproti zbytku velmi vysokou cenou, jsou typu Convertible.
+
+
+#Regresní model závislosti ceny automobilu Saturn na poètu najetých km.
+
+Q08 *Sestavte jednoduchý regresní model a na jeho základech zjistìte zdali cena ojetého automobilu znaèky Saturn závisí na poètu najetých kilometrù. Pokud ano, o kolik se zmìní odhadovaná cena automobilu Saturn pøi najetí 1000km navíc? Ovìøte pøedpoklady pro použití lineárního modelu a diskutujte výstup.*
+```{r}
+#Q8
+model = lm(Price ~ Odometer, cars[Make=="Saturn",])
+summary(model)
+```
+Na základì hodnoty statistik pro t-test a F-test považujeme na standardní 5% hladinì významnosti promìnnou za statisticky významnou a potvrzujeme dobrou shodu modelu s daty.
+```{r}
+coef(model)
+
+plot(Price ~ Odometer,cars[Make=="Saturn",],
+     main="Závislot Price na Odometer pro vozy Saturn",xlab="Odometer", ylab="Price ")
+abline(model,col ="blue")
+```
+
+Na základì koeficientu pro promìnnou Odometer platí, že na každých 1000 kilometrù dojde na základì lineárního modelu ke snížení ceny o 2100 Kè.
+
+
+Pro použití metody nejmenších ètvercù a testù hypotéz je nicménì zapotøebí též otestovat homoskedasticitu, sériovou nezávislost a normalitu reziduí.
+
+Pro ovìøení heteroskedastivity použijeme Breusch-Paganùv test
+```{r}
+bptest(model) 
+```
+Jak ukazuje výslednáá p-hodnota pro Breusch-Paganùv test, pro nezamítnutí nulové hypotézy o homoskedasticitì bych potøeboval nastavit 1% hladinu významnosti.
+
+
+Co se sériové nezávislosti týèe, pracujeme pouze s jednou exogenní promìnnou, a nemùže proto docházet ke korelaci s jinou promìnnou.
+```{r}
+
+layout(matrix(1:4,2,2)) #plot(model)
+qqnorm(residuals(model))
+qqline(residuals(model), col = 2)
+hist(fitted.values(model))
+hist(residuals(model))
+```
+Po vykreslení histogramù reziduí a standardního QQ plotu na základì pozorování na chvostech nelze na první pohled jednoznaènì usoudit závìr o normalitì reziduí. Provedeme proto Shapirùv test normality reziduí.
+```{r}
+shapiro.test(residuals(model)) 
+```
+
+Na základì výsledné p-hodnoty Shapirova testu na 5% hladinì významnosti nemùžeme zamítnout hypotézu o normalitì reziduí. Co se celkové diskuze nad modelemz tohoto vodù týèe, kromì pøípadné heteroskedasticity je též zarážející nízká hodnota R^2 koeficientu. To indikuje, že model má rezervy v zahrnutí rozptylu cen jednotlivých pozorování. Z tìchto dùvodù je zjevnì nutné zahrnout do modelu další promìnné a zamezit heteroskedasticitu vhodnou transformací.
+
+
+Q09 *Dá se pøedešlý jednoduchý regresní model zlepšit pomocí logaritmické transformace odezvy? Jak se poté zmìní (navýší/poklesne) cena automobilù pøi zmìnì poètu najetých kilometrù o 1000 km? Zdùvodnìte proè pøípadná transformace je pøínosná, nebo naopak nepøínosná.*
+```{r}
+#Q9
+model1 <- lm(log(Price) ~ Odometer , cars[Make=="Saturn",])
+summary(model1)
+coef(model1)
+```
+Po logaritmické transformaci odezvy Price klesne s každými 1000km cena vozu o 6732 Kè. Nyní prozkoumáme, zda logaritmická transformace zmírnila pøedchozí problém s heteroskedasticitou.
+```{r}
+bptest(model1)
+shapiro.test(residuals(model1)) 
+```
+
+Q10 *Na základì Breusch-Paganova testu nyní nemùžeme zamítnout nulovou hypotézu o homoskedasticitì, logaritmická transformace tedy v tomto pøípadì pomohla vyøešit problém pùvodního modelu s heteroskedasticitou. Na druhu stranu model stále disponuje nízkou hodnotou R^2 statistiky, a navíc byla snížena p-hodnota pro Shapirùv test normality reziduí.
+```{r}
+plot(log(Price) ~ Odometer,cars[Make=="Saturn",],
+     main="Závislost Price na Odometer po log transformaci",xlab="Odometer", ylab="Price ")
+abline(model1,col ="red")
+```
+
+Q10 *Vyzkoušejte transformovat nezávislou promìnnou Odometer. Vyzkoušejte napøíklad po èástech konstantní transformaci, splines a polynomiální transformaci (kvadratickou a kubickou).*
+```{r}
+#Q10
+#model2 <- lm(Price ~ bs(Odometer,knots=c(20000,40000)), cars[Make=="Saturn",])
+#points(Odometer.grid,predict(model2,newdata = #list(Odometer=Odometer.grid)),col="darkgreen",lwd=2,type="l")
+#adding cutpoints
+#summary(model2)
+
+#plot(Odometer~Price, cars[Make=="Saturn",],col="grey",xlab="Age",ylab="Wages")
+
+#adding cutpoints
+#abline(v=c(25,40,60),lty=2,col="darkgreen")
+
+#bptest(model2)
+#shapiro.test(residuals(model2)) 
+```
+
+V následujícím kroku provedeme kvadratickou transformaci vstupu. 
+```{r}
+model3 <- lm((Price) ~ poly(Odometer, degree=2, raw=TRUE) , cars[Make=="Saturn",])
+summary(model3)
+```
+
+Na základì p-hodnot t-testù pro jednotlivé exogenní promìnné je zjevné, že kvadratický èlen není signifikantní, a kvadratická transformace tedy není vhodným zpùsobem pro øešení úlohy.
+```{r include=  FALSE}
+#crPlots(model3)
+residualPlots(model3)
+# Absolute stud. Resid agains fitted  
+op <- par(mfrow=c(1,1))
+spreadLevelPlot(model3, col="black",pch=".")
+
+
+bptest(model3)
+shapiro.test(residuals(model3)) 
+
+```
+
+Analogicky poté provedeme též kubickou polynomiální transformaci.
+```{r}
+model4 <- lm((Price) ~ poly(Odometer, degree=3, raw=TRUE) , cars[Make=="Saturn",])
+summary(model4)
+```
+
+Podobnì jako v pøedchozím pøípadì tedy zjišujeme, že polynomiální transformace vstupu Odometer vede pouze k nesignifikantním promìnným, a není tak vhodná pro popis modelu.
+```{r include=FALSE}
+bptest(model4)
+shapiro.test(residuals(model4)) 
+```
+
+
+Jakožto poslední transformaci využijeme binární spline.
+```{r}
+model5=lm(Price ~ bs(Odometer, degree =   2), cars[Make=="Saturn",])
+summary(model5)
+```
+
+Transformace s využitím splinu je na základì p-hodnot t-testù a F-testu oproti polynomiální transformaci vhodnìjší. 
+```{r include=  FALSE}
+crPlots(model5)
+```
+
+
+```{r}
+bptest(model5)
+shapiro.test(residuals(model5))
+```
+
+Na základì Breusch-Paganova a Shapirova testu nelze zamítnout hypotézu o homoskedasticitì ani normalitì reziduí.
+
+
+Q11 *Vykreslete scatterplot skuteèných cen aut a stavu tachometru a na základì vybraného modelu, proložte skrze data odhadnutou regresní pøímku a vykreslete 95% konfidenèní intervaly jak pro predikované hodnoty, tak pro regresní pøímku (tzv. Confidence a Prediction band). Porovnejte s výsledkem z funkce plot(allEffects(model)).*
+
+```{r}
+#Q11
+cars_new <- data.frame(Odometer = (seq(min(cars$Odometer),max(cars$Odometer),500)))
+
+conf_new  <- predict(model5, newdata = cars_new, interval = "confidence",level = 0.95)
+pred_new  <- predict(model5, newdata = cars_new, interval = "prediction",level = 0.95)
+
+plot(Price ~ Odometer, data = cars[Make=="Saturn",], xlim = c(min(Odometer),max(Odometer)), ylim = c(min(Price),max(Price)),pch=20, col = "black", xaxs="i",yaxs="i",
+     main="model5: Závislost Price na Odometer",xlab="Odometer", ylab="Price")
+lines(cars_new[,1], pred_new[,1], col='black')
+lines(cars_new[,1], pred_new[,2], col='red')
+lines(cars_new[,1], pred_new[,3], col='red')
+lines(cars_new[,1], conf_new[,2], col='blue')
+lines(cars_new[,1], conf_new[,3], col='blue')
+
+```
+
+Následnì vykreslíme Confidence and Prediction Belt pomocí funkce allEffects().
+```{r}
+plot(allEffects(model5))
+```
+
+Dle oèekávání jsou poté oba obrázky v rámci konfidenèních intervalù identické. 
+
+Q12 *Pøidejte k vysvìtlujícím promìnným i Type a Model, navrhnìte aditivní lineární model, a ve scatterplotu vykreslete jednotlivé skupiny rùznými barvami a data proložte odpovídajícími regresními pøímkami.*
+
+Na základì zkušeností z pøedchozích bodù jsme se rozhodli modelovat závislost pomocí splinu. Osvìdèilo se nám pøitom transformovat splinem promìnnou Odometer, zatímco další promìnné netransformovat.
+
+```{r}
+#Q12
+model6=lm(Price ~ bs(Odometer,degree=2)+Type+Model, cars[Make=="Saturn",])
+summary(model6)
+```
+
+P-hodnoty pro F-test a t-testy ukazují na dobrou shodu modelu s daty a na fakt, že všechny promìnné v našem lineární modelu jsou signifikantní. Oproti prvotnímu lineárnímu modelu zároveò pozorujeme výraznì vyšší hodnotu R^2 statistiky.
+
+
+
+
+
+Vzhledem k tomu, že všechna vozy Saturn spadají do dvou tøíd Coupe a Sedan, vykreslujeme scatterplot se dvìmi barevnými indikacemi a regresními pøímkami.
+
+```{r}
+ggplot(cars[Make=="Saturn",], aes(x=Odometer, y=Price, color=Type)) +
+  geom_point() + 
+  geom_smooth(method=lm, se=TRUE, fullrange=TRUE)
+```
+
+Q13 *Proveïte validaci modelu z bodu 11 pomocí pøíslušných testù na rezidua a pomocí pøíslušných obrázkù (QQplot, residua vs. fitted, atd.)*
+
+Provedemi-li grafickou analýzu reziduí pro model z bodu Q12, získáváme následující obrázky.
+
+```{r}
+layout(matrix(1:4,2,2)) #plot(model)
+plot(model6)
+```
+
+Z vykreslení Residuals vs Fitted nepozorujeme trend nasvìdèující heteroskedasticitì. Pøestože v QQ-plotu pozorujeme odchylky reziduí ve chvostech, nelze jednoznaènì zamítnout normalitu reziduí. Pro rigorozní ovìøení proto provedeme statistické testy.
+
+```{r}
+bptest(model6)
+shapiro.test(residuals(model6))
+```
+
+P-hodnoty pro Breusch-Paganùv i Shapirùv test indikují, že nelze zamítnout homoskedasticitu ani normalitu reziduí.
+
+Vzhledem k tomu, že nyní pracujeme hned se tøemi exogenními promìnnými, zbrazujeme korelaèní matici pro identifikaci kolinearity mezi promìnnými.
+
+```{r include = FALSE}
+
+pairs.panels(cars[,c(2,5,12)],smooth=F,lm=T,scale=T,pch=20,cex.cor=10)
+```
+
+
+Na základì nízkých hodnot korelaèních koeficientù nicménì nepozorujeme významnou korelaci mezi exogenními pronìnnými.
+
+#Vícerozmerný regresní model
+
+```{r}
+#Q14
+library(reshape2)
+cars_melt <- cars[c("Price", "Cruise", "Sound", "Leather")]
+head(cars_melt)
+cars_melt <- melt(cars_melt, id.vars = "Price", variable.name = "Attribute", value.name = "Indicator")
+head(cars_melt)
+
+ggplot(cars_melt, aes(x=Attribute, y=Price, fill=Indicator)) +
+ geom_boxplot(size = 1, notch = T) +
+ ylab("Price") + xlab("") +
+ theme_bw()
+
+# pouzijeme unpaired two-sample t-test, ten ma urcite predpoklady:
+#      1) normalni rozdeleni hodnot v kazde skupine (Shapiro-Wilk test)
+#      2) shodnost rozptylu (var.test)
+# t-test pro tempomat
+t.test(Price ~ Cruise,alternative = "two.sided", var.equal = T)
+# podle vypoctene hodnoty zamitame hypotezu o rovnosti strednich hodnot
+# Jeste overime predpoklady pro pouziti t-testu
+shapiro.test(Price[Cruise==0]) # normalita dat ok
+shapiro.test(Price[Cruise==1]) # zamitame normalitu
+var.test(Price ~ Cruise, data = cars) # zamitame hypotezu o shodnosti rozptylu
+# Nejsou splneny predpoklady pro t-test => porovname stredni hodnoty pomoci Wilcoxonova neparam. testu
+wilcox.test(Price ~ Cruise) # zamitame hypotezu o rovnosti strednich hodnot
+
+# Porovnani prumerne ceny pro Sound
+shapiro.test(Price[Sound==0]) # zamitame normalitu
+shapiro.test(Price[Sound==1]) # zamitame normalitu
+var.test(Price ~ Sound) # shodnost rozptylu ok
+#nejsou splneny predpoklady pro t-test (normalita dat) => pouzijeme Wilcoxona
+wilcox.test(Price ~ Sound) # zamitame shodnost strednich hodnot
+
+# Porovnani prumerne ceny pro Leather
+shapiro.test(Price[Leather==0])
+shapiro.test(Price[Leather==1])
+var.test(Price ~ Leather)
+# zamitli jsme normalitu i shodnost rozptylu => pouzijeme Wilcoxona
+wilcox.test(Price ~ Leather) # zamitame shodnost rozptylu na hladine 0.05
+```
+
+
+*Q15: Zkonstruujte lineární model popisující cenu automobilu GM s využitím všech dostupných promìnných, kde bude pøítomna interakce nejvýše dvou promìnných. Na základì kritérií jako jsou AIC, BIC, R2, F, atd. vyberte nejvhodnìjší model. Ten validujte a okomentujte jeho výbìr.*  
+
+```{r}
+
+modelGM <- lm(Price ~ Type + Odometer + Liter + Make, data = cars)
+
+model_AIC <-stepAIC(modelGM,k=2)
+#model_BIC <-stepAIC(modelGM,k=log(nrow(cars)))
+summary(modelGM)
+AIC(modelGM)
+BIC(modelGM)
+plot( modelGM )
+```
